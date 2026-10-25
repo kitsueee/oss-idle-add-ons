@@ -1,4 +1,4 @@
-// oss!idle add-on: lazer look  (version 0.9.2)
+// oss!idle add-on: lazer look  (version 0.9.3)
 //
 // Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
@@ -1090,9 +1090,11 @@ const lzScan = () => {
 	}
 };
 // A menu from a right-click opens next to the mouse as a small card (the game's other pop-ups stay centered dialogs)
+const RIGHT_EVENTS = ['contextmenu', 'pointerdown', 'mousedown', 'mouseup', 'auxclick'];
 let rightAt = { x: 0, y: 0, t: 0 };
-const closePop = () => document.querySelector('.ctxmenu.lz-pop')?.click(); // (the game closes a menu when its backdrop is clicked: here the menu is the backdrop)
-const onRight = (e) => { if (!e.target.closest?.('.ctxmenu.lz-pop')) closePop(); rightAt = { x: e.clientX, y: e.clientY, t: Date.now() }; };
+const closePop = () => { const m = document.querySelector('.ctxmenu.lz-pop'); if (m && Date.now() - (m._lzBorn || 0) > 400) m.click(); }; // (not the one this very click just opened) // (the game closes a menu when its backdrop is clicked: here the menu is the backdrop)
+// (the game opens its menu on the right button going down or up, before or after the browser's own contextmenu event: any of them marks the spot)
+const onRight = (e) => { if (e.type !== 'contextmenu' && e.button !== 2) return; if (!e.target.closest?.('.ctxmenu.lz-pop')) closePop(); rightAt = { x: e.clientX, y: e.clientY, t: Date.now() }; };
 const onClickOutside = (e) => {
 	const pop = document.querySelector('.ctxmenu.lz-pop');
 	if (pop && !pop.contains(e.target)) { e.preventDefault(); e.stopPropagation(); pop.click(); } // (this click only closes the menu)
@@ -1102,6 +1104,7 @@ const popScan = () => {
 		m.dataset.lzPop = '1';
 		if (Date.now() - rightAt.t > 700) continue; // not from a right-click
 		m.classList.add('lz-pop');
+		m._lzBorn = Date.now();
 		m.style.setProperty('--lz-px', `${rightAt.x + 4}px`);
 		m.style.setProperty('--lz-py', `${rightAt.y + 4}px`);
 		const r = m.getBoundingClientRect(); // (kept on the screen)
@@ -1148,7 +1151,7 @@ export const mount = () => {
 	observer = new MutationObserver(scan);
 	observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 	document.addEventListener('scroll', onScroll, true);
-	document.addEventListener('contextmenu', onRight, true);
+	for (const t of RIGHT_EVENTS) document.addEventListener(t, onRight, true);
 	document.addEventListener('click', onClickOutside, true);
 	lzLoad();
 	document.addEventListener('submit', lzOnSubmit, true);
@@ -1168,7 +1171,7 @@ export const unmount = () => {
 	headObserver?.disconnect();
 	headObserver = null;
 	document.removeEventListener('scroll', onScroll, true);
-	document.removeEventListener('contextmenu', onRight, true);
+	for (const t of RIGHT_EVENTS) document.removeEventListener(t, onRight, true);
 	document.removeEventListener('click', onClickOutside, true);
 	document.querySelectorAll('.ctxmenu.lz-pop').forEach(m => { m.classList.remove('lz-pop'); m.style.removeProperty('--lz-px'); m.style.removeProperty('--lz-py'); });
 	document.querySelectorAll('.ctxmenu[data-lz-pop]').forEach(m => delete m.dataset.lzPop);

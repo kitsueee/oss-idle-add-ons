@@ -21,6 +21,9 @@ How this was put together: the notes come from the add-ons' own version history 
 - Pictures from chat are loaded without a referrer. Reaction chips follow the "Show pictures and GIFs" setting.
 - Your own name is only picked up from your echoed message when it carries your mark. The 🔒 tab flips to 🔓 right after the password. The browser database connections are closed after use.
 
+**lazer look 0.9.3**
+- The right-click card also works when the game opens its menu on the right button going down or up (before the browser's own context-menu event), which is how it does it.
+
 **lazer look 0.9.2**
 - A menu opened with a right-click now appears next to the mouse as a small card (kept on screen) instead of a full-screen dialog; clicking outside it closes it. The game's other pop-ups are still centered dialogs.
 
