@@ -1,4 +1,4 @@
-// oss!idle add-on: lazer look  (version 0.9.5)
+// oss!idle add-on: lazer look  (version 0.9.6)
 //
 // Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
@@ -1146,7 +1146,22 @@ const popScan = () => {
 		m.style.setProperty('--lz-py', `${Math.max(8, Math.min(rightAt.y + 4, innerHeight - r.height - 8))}px`);
 	}
 };
+// Opening the Add-ons page closes the chat and the online users panel (they would sit on top of it)
+let addonsWas = false;
+const isAddonsOpen = () => [...document.querySelectorAll('.page')].some(pg => /add-?ons?\b/i.test(pg.querySelector('.page__title')?.textContent || '') || !!pg.querySelector('.addon-types, .addon__downloads'));
+const closeCommunity = () => {
+	const btns = [...document.querySelectorAll('.community-controls__btn')];
+	const on = (re) => btns.find(b => re.test(b.textContent) && b.dataset.on === 'true');
+	on(/online|users/i)?.click(); // (first the users panel, then the chat: closing the chat closes the whole side panel)
+	on(/chat/i)?.click();
+};
+const addonsScan = () => {
+	const open = isAddonsOpen();
+	if (open && !addonsWas) closeCommunity();
+	addonsWas = open;
+};
 const scan = () => {
+	addonsScan();
 	popScan();
 	lzScan();
 	const screen = document.querySelector('.resultscreen');

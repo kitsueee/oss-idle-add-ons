@@ -21,6 +21,9 @@ How this was put together: the notes come from the add-ons' own version history 
 - Pictures from chat are loaded without a referrer. Reaction chips follow the "Show pictures and GIFs" setting.
 - Your own name is only picked up from your echoed message when it carries your mark. The 🔒 tab flips to 🔓 right after the password. The browser database connections are closed after use.
 
+**lazer look 0.9.6**
+- Opening the Add-ons page (from the toolbar or the options) closes the chat and the online users panel.
+
 **lazer look 0.9.5**
 - The queue / now playing dock is restyled the lazer way: a glass card with a pink glow line, rounded buttons with a pink "upgrades", a glowing progress bar, and a queue list with round numbers and a pink highlight on the next map. (This replaces 0.9.4, which restyled the wrong box, the "Now playing" strip in the community panel; that is back to how it was.)
 
