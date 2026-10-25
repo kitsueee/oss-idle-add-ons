@@ -1,6 +1,6 @@
 // oss!idle add-on: pink stars hotfix  (version 0.1.0)
 //
-// Copyright (c) 2026 YOUR NAME. Released under the MIT License: free to use, copy, change
+// Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
 //
 // Makes the chat add-on's ✦ stars pink again for everyone, including the ones that turned

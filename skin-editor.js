@@ -1,6 +1,6 @@
 // oss!idle add-on: skin editor  (version 0.33.0)
 //
-// Copyright (c) 2026 YOUR NAME. Released under the MIT License: free to use, copy, change
+// Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
 // The live judgement counter in it is based on applepie's judgement counter add-on.
 //

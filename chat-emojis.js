@@ -1,6 +1,6 @@
 // oss!idle add-on: chat emojis  (version 0.9.2)
 //
-// Copyright (c) 2026 YOUR NAME. Released under the MIT License: free to use, copy, change
+// Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
 //
 // Emojis and GIFs for the game's chat:

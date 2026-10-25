@@ -1,6 +1,6 @@
 // oss!idle add-on: add-on sandbox  (version 0.1.0)
 //
-// Copyright (c) 2026 YOUR NAME. Released under the MIT License: free to use, copy, change
+// Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
 //
 // Try an add-on without installing it: press Alt+Shift+T for a box, paste an add-on's code

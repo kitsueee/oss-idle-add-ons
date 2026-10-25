@@ -1,6 +1,6 @@
 // oss!idle add-on: reset star memory  (version 0.1.0)
 //
-// Copyright (c) 2026 YOUR NAME. Released under the MIT License: free to use, copy, change
+// Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
 //
 // Clears the chat emojis add-on's memory of who uses it (and which version they're on), so

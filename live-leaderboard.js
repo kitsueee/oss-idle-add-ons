@@ -1,6 +1,6 @@
 // oss!idle add-on: live leaderboard  (version 0.1.2)
 //
-// Copyright (c) 2026 YOUR NAME. Released under the MIT License: free to use, copy, change
+// Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
 //
 // While a map plays, a leaderboard sits beside the playfield like osu!'s: the map's

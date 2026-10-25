@@ -1,6 +1,6 @@
 // oss!idle add-on: lazer look  (version 0.9.0)
 //
-// Copyright (c) 2026 YOUR NAME. Released under the MIT License: free to use, copy, change
+// Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
 //
 // Restyles the game after osu!lazer: a rounder, flatter look with lazer's

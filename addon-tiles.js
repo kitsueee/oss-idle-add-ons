@@ -1,6 +1,6 @@
 // oss!idle add-on: add-on tiles  (version 0.1.4)
 //
-// Copyright (c) 2026 YOUR NAME. Released under the MIT License: free to use, copy, change
+// Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
 //
 // Adds a List / Tiles switch to the Add-ons page (both Manage and Browse). Tiles show
