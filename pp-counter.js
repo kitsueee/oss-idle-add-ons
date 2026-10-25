@@ -99,6 +99,7 @@ const loadRate = async (rate) => {
 		starsByRate.set(rate, new Map(Object.entries(json).map(([id, s]) => [Number(id), s])));
 	} catch {
 		starsByRate.set(rate, 'failed');
+		setTimeout(() => { if (starsByRate.get(rate) === 'failed') starsByRate.delete(rate); }, 30000); // (try again later)
 	}
 };
 /** { stars, estimate }: the map's star rating at the play's rate. */

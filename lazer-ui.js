@@ -1,4 +1,4 @@
-// oss!idle add-on: lazer look  (version 0.9.0)
+// oss!idle add-on: lazer look  (version 0.9.1)
 //
 // Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
@@ -24,9 +24,9 @@ const RANKS = [
 ];
 
 const CSS = String.raw`
-.lz-tagged::after,.lz-corner{content:'LAZER';display:inline-block;margin-left:8px;padding:0 6px;height:14px;border-radius:7px;background:linear-gradient(90deg,#66ccff,#b48cff);color:#0b0b16;font:700 9px/14px "Exo 2",system-ui,sans-serif;letter-spacing:.08em;vertical-align:middle;box-shadow:0 0 8px rgba(140,160,255,.35)}
+.lz-corner{content:'LAZER';display:inline-block;margin-left:8px;padding:0 6px;height:14px;border-radius:7px;background:linear-gradient(90deg,#66ccff,#b48cff);color:#0b0b16;font:700 9px/14px "Exo 2",system-ui,sans-serif;letter-spacing:.08em;vertical-align:middle;box-shadow:0 0 8px rgba(140,160,255,.35)}
 .lz-corner{position:absolute;z-index:3;top:11px;left:100px;margin:0;pointer-events:none}
-.lz-tagged--rainbow::after,.lz-corner--rainbow{background:linear-gradient(90deg,#ff5a5a,#ffb84d,#f3ee5a,#5ee07a,#4dc9ff,#8a7bff,#ff6ad5,#ff5a5a);background-size:200% 100%;animation:lz-rainbow 6s linear infinite;box-shadow:0 0 8px rgba(255,160,220,.4)}
+.lz-corner--rainbow{background:linear-gradient(90deg,#ff5a5a,#ffb84d,#f3ee5a,#5ee07a,#4dc9ff,#8a7bff,#ff6ad5,#ff5a5a);background-size:200% 100%;animation:lz-rainbow 6s linear infinite;box-shadow:0 0 8px rgba(255,160,220,.4)}
 @keyframes lz-rainbow{to{background-position:200% 0}}
 .lz-only{flex:none;height:28px;margin-right:8px;padding:0 12px;border:0;border-radius:999px;background:rgba(255,255,255,.1);color:#fff;font:700 11px/28px "Exo 2",system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background .15s}
 .lz-only:hover{background:rgba(255,255,255,.18)}
@@ -733,7 +733,7 @@ const icon = (name) => {
 	return svg;
 };
 let toolbar = null; // { root, time, run, timer, chat, users }
-const startedAt = Date.now();
+let startedAt = Date.now();
 const buildToolbar = () => {
 	const root = document.createElement('div');
 	root.className = 'lz-toolbar';
@@ -800,6 +800,7 @@ const buildToolbar = () => {
 	clock.append(time, run);
 	root.append(clock);
 	document.body.append(root);
+	startedAt = Date.now();
 	const pad = (n) => String(n).padStart(2, '0');
 	const tick = () => {
 		const now = new Date();
@@ -1056,11 +1057,9 @@ const lzScan = () => {
 		const on = lzHas(k);
 		const card = nm.closest('.player-card');
 		if (card) card.classList.toggle('lz-nolazer', lzOnly && !on);
-		nm.classList.toggle('lz-tagged--rainbow', on && k === LZ_ALWAYS);
 		if (on && nm.title !== 'Uses the lazer look') nm.title = 'Uses the lazer look';
 		else if (!on && nm.title === 'Uses the lazer look') nm.removeAttribute('title');
 		// always right after the name
-		nm.classList.remove('lz-tagged');
 		let corner = card?.querySelector(':scope > .lz-corner');
 		if (!on) { corner?.remove(); continue; }
 		if (!corner && card) {
@@ -1095,6 +1094,7 @@ const scan = () => {
 };
 
 export const mount = () => {
+	if (observer) return; // already on
 	window.__ossIdleLazerUi = true; // other add-ons (the skin importer) take lazer's look too
 	if (!document.getElementById(FONT_ID)) {
 		const link = document.createElement('link');
@@ -1143,7 +1143,7 @@ export const unmount = () => {
 	document.querySelectorAll('.lz-only').forEach(b => b.remove());
 	document.querySelectorAll('.lz-nolazer').forEach(c => c.classList.remove('lz-nolazer'));
 	document.querySelectorAll('.lz-corner').forEach(c => c.remove());
-	document.querySelectorAll('.lz-tagged').forEach(n => { n.classList.remove('lz-tagged', 'lz-tagged--rainbow'); if (n.title === 'Uses the lazer look') n.removeAttribute('title'); });
+	document.querySelectorAll('.player-card__name').forEach(n => { if (n.title === 'Uses the lazer look') n.removeAttribute('title'); });
 	document.querySelectorAll('.chat__line[data-lz-seen]').forEach(l => delete l.dataset.lzSeen);
 	carouselReturn.unmount();
 	clearInterval(markTimer);
@@ -1152,7 +1152,8 @@ export const unmount = () => {
 	document.getElementById(STYLE_ID)?.remove();
 	document.getElementById(FONT_ID)?.remove();
 	document.querySelectorAll('.lz-ring, .lz-ring__acc').forEach(e => e.remove());
-	document.querySelectorAll('.lz-lbrow').forEach(e => { e.classList.remove('lz-lbrow', 'lz-top10'); e.style.removeProperty('--lz-i'); });
+	if (leanFrame) { cancelAnimationFrame(leanFrame); leanFrame = 0; }
+	document.querySelectorAll('.lz-lbrow, .lb__list>li').forEach(e => { e.classList.remove('lz-lbrow', 'lz-top10'); e.style.removeProperty('--lz-i'); });
 	if (toolbar) {
 		clearInterval(toolbar.timer);
 		toolbar.root.remove();
@@ -1166,8 +1167,9 @@ export const unmount = () => {
 		setOnly = null;
 		setReal(typedOnly); // the game's search back to just what was typed
 	}
-	if (ourFillText) {
-		if (proto.fillText === ourFillText) proto.fillText = prevFillText;
+	// put the canvas back only when nothing else wrapped it after us; otherwise our (now inert) wrapper stays in the chain and mount() reuses it
+	if (ourFillText && proto.fillText === ourFillText) {
+		proto.fillText = prevFillText;
 		ourFillText = null;
 	}
 };

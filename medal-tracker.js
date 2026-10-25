@@ -1,4 +1,4 @@
-// oss!idle add-on: Medal tracker  (version 0.3.1)
+// oss!idle add-on: Medal tracker  (version 0.3.2; keep VERSION below in step)
 //
 // Shows which medals you can get next and how close you are, from the game's own
 // medal progress for your character:
@@ -16,6 +16,7 @@
 //
 // Alt+Shift+M opens and closes it.
 
+const VERSION = '0.3.2';
 const API_FALLBACK = 'https://api.oss.idle.rhythmgamers.net';
 // two looks: osu!lazer's (when the lazer look add-on is on) and the tracker's own
 const CLASSIC_C = {
@@ -246,12 +247,12 @@ const sortOut = (data) => {
 			if (p.value >= p.goal) { ready.push(entry); continue; }
 			// a level: how far along in XP (the levels get much dearer the higher they go)
 			const sr = seriesOf(m.id);
-			const have = character && character.xp ? character.xp[sr.name] : undefined;
-			if (have !== undefined && (SKILLS[sr.name] || sr.name === 'overall')) {
+			const have = sr && character && character.xp ? character.xp[sr.name] : undefined;
+			if (sr && have !== undefined && (SKILLS[sr.name] || sr.name === 'overall')) {
 				entry.xpHave = have;
 				entry.xpNeed = xpTo(p.goal);
 			}
-			const line = seriesOf(m.id).name;
+			const line = sr ? sr.name : m.id; // (a one-off medal is its own line)
 			if (seenSeries.has(line)) { later.push(entry); continue; }
 			seenSeries.add(line);
 			next.push(entry);
@@ -371,7 +372,7 @@ const medalRow = (m, { bar = false } = {}) => {
 	if (r) main.append(el('div', `font-size:11px;color:${C.muted};opacity:.75`, r));
 	const pick = mapsFor(m.id, mapList);
 	if (pick && pick.maps.length) {
-		const box = el('div', `display:grid;grid-template-columns:minmax(0,1fr);gap:3px;margin-top:4px;padding:6px 8px;border-radius:${RADIUS}px;background:${lazerLook ? C.bg : C.bg}`);
+		const box = el('div', `display:grid;grid-template-columns:minmax(0,1fr);gap:3px;margin-top:4px;padding:6px 8px;border-radius:${RADIUS}px;background:${C.bg}`);
 		box.append(el('div', `font-size:11px;color:${C.muted}`, `Easiest maps · ${pick.why}`));
 		for (const map of pick.maps) {
 			const line = el('button', `display:flex;gap:8px;align-items:baseline;width:100%;padding:3px 4px;border:0;border-radius:6px;background:transparent;color:${C.ink};font:12px ${FONT};text-align:left;cursor:pointer`);
@@ -410,7 +411,7 @@ const section = (title, note, items) => {
 const render = () => {
 	if (!body) return;
 	body.replaceChildren();
-	if (!lastData) return;
+	if (!lastData || !character) return;
 	const s = sortOut(lastData);
 	const parts = [];
 	parts.push(el('div', `font-size:12px;color:${C.muted}`,
@@ -489,7 +490,7 @@ const buildPanel = () => {
 	close.addEventListener('click', () => { panel.style.display = 'none'; });
 	head.append(el('div', lazerLook ? `font:600 18px ${FONT};color:${C.ink}` : `font:700 15px ${FONT};color:${C.accent}`, lazerLook ? 'medals' : 'Medals you can get'), refresh, close);
 	body = el('div', 'display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-content:start;padding:12px 14px;overflow:auto;min-height:0;flex:1');
-	panel.append(head, body, el('div', `padding:8px 14px;font-size:11px;color:${C.muted};border-top:1px solid ${C.line}`, 'Alt+Shift+M to close · v0.3.1'));
+	panel.append(head, body, el('div', `padding:8px 14px;font-size:11px;color:${C.muted};border-top:1px solid ${C.line}`, `Alt+Shift+M to close · v${VERSION}`));
 	document.body.append(panel);
 };
 

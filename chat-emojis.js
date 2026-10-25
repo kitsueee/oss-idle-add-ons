@@ -1,4 +1,4 @@
-// oss!idle add-on: chat emojis  (version 0.9.2)
+// oss!idle add-on: chat emojis  (version 0.9.3)
 //
 // Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
@@ -236,7 +236,11 @@ const idb = () => new Promise((done) => {
 const idbPut = async (value) => {
 	const db = await idb();
 	if (!db) return;
-	try { db.transaction('kv', 'readwrite').objectStore('kv').put(value, EMO_KEY); } catch { /* not available */ }
+	try {
+		const tx = db.transaction('kv', 'readwrite');
+		tx.objectStore('kv').put(value, EMO_KEY);
+		tx.oncomplete = tx.onerror = tx.onabort = () => db.close();
+	} catch { db.close(); /* not available */ }
 };
 const idbGet = async () => {
 	const db = await idb();
@@ -244,9 +248,9 @@ const idbGet = async () => {
 	return new Promise((done) => {
 		try {
 			const q = db.transaction('kv').objectStore('kv').get(EMO_KEY);
-			q.onsuccess = () => done(typeof q.result === 'string' ? q.result : null);
-			q.onerror = () => done(null);
-		} catch { done(null); }
+			q.onsuccess = () => { done(typeof q.result === 'string' ? q.result : null); db.close(); };
+			q.onerror = () => { done(null); db.close(); };
+		} catch { done(null); db.close(); }
 	});
 };
 const saveEmo = (s) => {
@@ -289,6 +293,7 @@ const mediaEl = (info, cls, alt) => {
 	e.className = cls;
 	if (info.video) Object.assign(e, { muted: true, loop: true, autoplay: true, playsInline: true, preload: 'auto' });
 	else Object.assign(e, { alt, draggable: false, loading: 'lazy' });
+	e.referrerPolicy = 'no-referrer'; // (a picture someone posted shouldn't learn where it was opened from)
 	e.title = alt;
 	return e;
 };
@@ -306,9 +311,11 @@ const expandEmoji = (text, emo) => text.replace(/:([a-z0-9_+-]{1,32}):/gi, (all,
 const chatName = (line) => (line.querySelector('.chat__name')?.textContent || '').replace(/[:\s]+$/, '').trim();
 const chatTime = (line) => (/\d{1,2}:\d{2}(?::\d{2})?/.exec(line.querySelector('.chat__from')?.textContent || '') || [''])[0];
 // every message from this add-on starts with these three invisible characters
-const VERSION = '0.9.2';
+const VERSION = '0.9.3';
 const buildOf = (v) => { const [a = 0, b = 0, c = 0] = v.split('.').map(Number); return a * 10000 + b * 100 + c; };
 const BUILD = buildOf(VERSION);
+const MAX_BUILD = BUILD + 300; // (a few minor versions ahead is believable)
+const STAR_SINCE = '0.9.2'; // the first version that sends and shows star colors
 const showBuild = (n) => (n > 0 ? `${Math.floor(n / 10000)}.${Math.floor(n / 100) % 100}.${n % 100}` : 'an older version');
 // after the three characters come 24 more (zero / one), which are this add-on's version number: that's how others tell who is out of date
 const bitsOf = (n) => [...n.toString(2).padStart(24, '0')].map(b => (b === '1' ? '\u200d' : '\u200b')).join('');
@@ -336,7 +343,7 @@ const buildFrom = (raw) => {
 	let best = -1;
 	for (const m of raw.matchAll(/\u200c\u2060\u200c([\u200b\u200d]{24})?/g)) {
 		const b = m[1] ? parseInt([...m[1]].map(c => (c === '\u200d' ? '1' : '0')).join(''), 2) : 0;
-		if (b >= 100 && b > best) best = b;
+		if (b >= 100 && b <= MAX_BUILD && b > best) best = b; // (a build far above ours is a fake: it would turn everybody's stars blue)
 	}
 	return best;
 };
@@ -594,7 +601,7 @@ const chatEmoji = (() => {
 				line.classList.add('ce-react-line');
 				continue;
 			} // (a reaction we can't read: never shown as raw text)
-			if (!emo.me && lastSent && Date.now() - lastSentAt < 10000 && lineText(line).trim() === lastSent && who) { // your own message came back: that's your name
+			if (!emo.me && lastSent && Date.now() - lastSentAt < 10000 && lineText(line).trim() === lastSent && who && (!emo.badge || rawText(line).includes(MARK))) { // your own message came back: that's your name
 				emo.me = who;
 				saveEmo(emo);
 			}
@@ -627,7 +634,7 @@ const chatEmoji = (() => {
 		}
 		renderReactions();
 	};
-	const latestBuild = () => Math.max(BUILD, ...users.values());
+	const latestBuild = () => Math.max(BUILD, ...[...users.values()].filter(v => v <= MAX_BUILD));
 	/** Who a ✦ is for, and whether they're out of date (null if they don't have the add-on). */
 	const badgeInfo = (name) => {
 		const b = isMe(name.trim()) ? BUILD : users.get(name.trim().toLowerCase()); // (you always have it: your own star shows too)
@@ -687,7 +694,7 @@ const chatEmoji = (() => {
 				chip.type = 'button';
 				chip.title = `${[...who].join(', ')} reacted${[...who].some(isMe) ? ' (click to remove yours)' : ''}`;
 				const info = /^https?:\/\//i.test(content) ? mediaOf(content, emo) : null;
-				if (info && !emo.hideLinks) chip.append(Object.assign(mediaEl(info, '', content), { src: info.src }));
+				if (info && !emo.hideLinks && emo.embed) chip.append(Object.assign(mediaEl(info, '', content), { src: info.src }));
 				else chip.append(el('span', '', info || /^https?:/i.test(content) ? '🔗' : content));
 				chip.append(el('span', 'ce-rx__n', String(who.size)));
 				chip.addEventListener('click', (e) => {
@@ -1151,7 +1158,7 @@ const chatEmoji = (() => {
 			const go = el('button', '', 'Enter');
 			go.type = 'button';
 			const tryCode = () => {
-				if (code.value.trim().toLowerCase() === 'skibidi') { emo.star = true; saveEmo(emo); redo(); const tb = picker.form.querySelector('[data-set="lock"]'); if (tb) tb.textContent = '🔓'; fill(); } else { say.textContent = 'Wrong password.'; code.value = ''; }
+				if (code.value.trim().toLowerCase() === 'skibidi') { emo.star = true; saveEmo(emo); redo(); const tb = document.querySelector('.ce-emo-pick__tab[data-set="lock"]'); if (tb) tb.textContent = '🔓'; fill(); } else { say.textContent = 'Wrong password.'; code.value = ''; }
 			};
 			go.addEventListener('click', tryCode);
 			code.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); tryCode(); } });
@@ -1181,7 +1188,7 @@ const chatEmoji = (() => {
 		grid.append(el('div', 'ce-set__h', 'Your mark'), choose('Look', 'starMode', [['', 'The usual'], ['solid', 'One color'], ['gradient', 'Two colors, fading (animated)']], () => { redo(); fill(); }));
 		if (emo.starMode) grid.append(pick(emo.starMode === 'gradient' ? 'First color' : 'Color', 'starC1'));
 		if (emo.starMode === 'gradient') grid.append(pick('Second color', 'starC2'));
-		grid.append(note('People with this add-on (0.9.2 or newer) see it from your next message on. Everyone else sees the usual one.'));
+		grid.append(note(`People with this add-on (${STAR_SINCE} or newer) see it from your next message on. Everyone else sees the usual one.`));
 	};
 	/** The ⚙ tab. */
 	const settingsTab = () => {

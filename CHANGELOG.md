@@ -6,6 +6,30 @@ How this was put together: the notes come from the add-ons' own version history 
 
 ---
 
+## Code review fixes (25 Oct)
+
+**chat emojis 0.9.3**
+- A made-up version number in a chat message can no longer turn everyone's stars blue.
+- Pictures from chat are loaded without a referrer. Reaction chips follow the "Show pictures and GIFs" setting.
+- Your own name is only picked up from your echoed message when it carries your mark. The 🔒 tab flips to 🔓 right after the password. The browser database connections are closed after use.
+
+**lazer look 0.9.1**
+- Turning it off and on again with another add-on that also draws on the canvas no longer makes the HUD text loop forever.
+- Switching it off now removes the tag titles and leaderboard lean it added; switching it on twice does nothing extra; the "running" clock restarts when the toolbar is built.
+
+**skin editor 0.33.1**
+- Skin files from an .osk whose names start with `./` or use backslashes are written to the right place, and names that climb out of the skin folder (`..`) or are absolute are skipped.
+- Skin pictures no longer leave their temporary links behind.
+- Versus John: his hitsound, column colors and judgement texts come from the skin in use again.
+- A pending automatic restart is cancelled when the editor is closed or rebuilt; the live-preview autopilot and folder/skin loading stop cleanly when switched off; database connections are always closed.
+- The extra debug text in the "game did not load it" message is gone, along with unused code.
+
+**medal tracker 0.3.2**: no crash for one-off medals or when the character didn't load.
+**live leaderboard 0.1.3**: the COUNTRY board learns your country from the global board (until you appear on one it shows the global board); an old saved "right side" position is converted again.
+**pp counter**: a failed star-rating fetch is tried again after 30 seconds.
+
+---
+
 ## chat emojis
 
 **0.9.2** (25 Oct)
@@ -67,7 +91,7 @@ How this was put together: the notes come from the add-ons' own version history 
 - GIF search in the GIF tab, through KLIPY (needs your own free KLIPY key, kept in your browser).
 
 **0.1.1** (24 Oct)
-- "Delete for me": hide a message on your screen, with a few seconds to undo. "Unhide deleted messages" brings them back.
+- "Delete for me": hide a message on your screen, with a few seconds to undo. "Unhide deleted messages" brings them back. (Not in 0.9.2: it was taken out again at some point after this, and the exact version wasn't written down.)
 
 **0.1.0** (24 Oct)
 - First version, split out of the lazer look: `:name:` emojis with suggestions as you type, a picker with Favorites, emojis of your own (a picture link under a name), saved GIFs, and picture/GIF links shown as pictures.

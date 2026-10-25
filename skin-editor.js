@@ -1,4 +1,4 @@
-// oss!idle add-on: skin editor  (version 0.33.0)
+// oss!idle add-on: skin editor  (version 0.33.1; keep VERSION below in step)
 //
 // Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
@@ -33,16 +33,8 @@ const STAGE_PARTS = {
 	bottom: ['stagebottom', 'mania-stage-bottom'],
 	hint: ['stagehint', 'mania-stage-hint'],
 };
+const VERSION = '0.33.1';
 const keyHeight = (img, colW, screenH) => (img.osuH ? img.osuH * screenH / 768 : colW * img.height / img.width);
-
-const RAW = (() => {
-	const P = CanvasRenderingContext2D.prototype;
-	return { drawImage: P.drawImage, arc: P.arc, lineTo: P.lineTo, scale: P.scale };
-})();
-const rawDrawImage = (ctx, ...a) => RAW.drawImage.apply(ctx, a);
-const rawArc = (ctx, ...a) => RAW.arc.apply(ctx, a);
-const rawLineTo = (ctx, x, y) => RAW.lineTo.call(ctx, x, y);
-const rawScale = (ctx, x, y) => RAW.scale.call(ctx, x, y);
 
 const frameAt = (img, speed = 1) => (img && typeof img === 'object' && img.frames && img.frames.length > 1
 	? img.frames[Math.floor(performance.now() * img.fps * speed / 1000) % img.frames.length]
@@ -80,8 +72,6 @@ const IMAGE_KINDS = {
 	keyDown: { ini: c => `keyimage${c}d`, file: c => `${KEY_FILES[c]}D`, maxW: 128, maxH: 768 },
 };
 const DEFAULT_COLORS = ['#e8e8f0', '#63b3ff', '#63b3ff', '#e8e8f0'];
-const HITSOUND_KEY = 'default/normal-hitnormal';
-const MIN_HIT_POSITION = 100;
 
 // two looks: osu!lazer's (when the lazer look add-on is on) and the editor's own
 const LAZER_C = {
@@ -287,7 +277,7 @@ const toHex = (r, g, b) => `#${hex2(r)}${hex2(g)}${hex2(b)}`;
 const loadImage = (bytes) => new Promise((resolve, reject) => {
 	const url = URL.createObjectURL(new Blob([bytes], { type: 'image/png' }));
 	const img = new Image();
-	img.onload = () => resolve(img);
+	img.onload = () => { URL.revokeObjectURL(url); resolve(img); }; // (decoded by now: the link isn't needed)
 	img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('unreadable image')); };
 	img.src = url;
 });
@@ -391,6 +381,13 @@ const parseIni = (text) => {
 };
 
 const norm = (p) => p.replace(/\\/g, '/').replace(/^\.?\//, '').toLowerCase();
+/** A file's path inside the skin folder, with its own letters: from the zip's name, cleaned the way norm() does it. null if it isn't safe to write. */
+const relPath = (zipName, baseLen) => {
+	const clean = zipName.replace(/\\/g, '/').replace(/^\.?\//, '');
+	const rel = clean.slice(baseLen);
+	if (!rel || rel.startsWith('/') || /^[a-z]:/i.test(rel) || rel.split('/').some(seg => seg === '..')) return null;
+	return rel;
+};
 
 const convert = async (zip, fallbackName) => {
 	const iniName = zip.names
@@ -691,8 +688,6 @@ const libName = async (want) => {
 	for (let i = 1; ; i++) { const n = i === 1 ? base : `${base} (${i})`; if (!used.has(n.toLowerCase())) return n; }
 };
 const libBytes = async (name, path) => { const r = await hostLib().read('skins', name, path); return r ? new Blob([r]) : null; };
-// the game watches its skin folders: it notices a change, then (about 300 ms later) checks its skin list against them; give it time before telling it to load the skin
-const libSettled = () => new Promise((resolve) => setTimeout(resolve, 900));
 // What the game knows of each skin folder: it lists its folders once, when it starts, and only hears about our writes after a restart.
 // So a folder it hasn't seen, or files it hasn't seen in a folder, need a reload of the game to show up.
 const gameKnows = new Map(); // skin id -> the paths the game listed for it at its start (null: the folder didn't exist then)
@@ -717,22 +712,23 @@ const writeGameFiles = async (id, list, blobs, only = null, wantName = '') => {
 		return needsReload(id, list);
 	}
 	const idb = await gameSkinDb();
-	const old = (await reqDone(idb.transaction('manifests').objectStore('manifests').get(id)))?.files || [];
-	const tx = idb.transaction(['manifests', 'files'], 'readwrite');
-	const files = tx.objectStore('files');
-	if (!only) {
-		const keep = new Set(list.map(f => gamePath(f.path)));
-		for (const f of old) if (!keep.has(gamePath(f.path))) files.delete(`${id}/${gamePath(f.path)}`);
-	}
-	for (const f of list) {
-		const p = gamePath(f.path);
-		if (only && !only.has(p)) continue;
-		const b = blobs.get(p);
-		if (b) files.put(b, `${id}/${p}`);
-	}
-	tx.objectStore('manifests').put({ id, files: list.map(f => ({ path: f.path, size: f.size })) });
-	await txDone(tx);
-	idb.close();
+	try {
+		const old = (await reqDone(idb.transaction('manifests').objectStore('manifests').get(id)))?.files || [];
+		const tx = idb.transaction(['manifests', 'files'], 'readwrite');
+		const files = tx.objectStore('files');
+		if (!only) {
+			const keep = new Set(list.map(f => gamePath(f.path)));
+			for (const f of old) if (!keep.has(gamePath(f.path))) files.delete(`${id}/${gamePath(f.path)}`);
+		}
+		for (const f of list) {
+			const p = gamePath(f.path);
+			if (only && !only.has(p)) continue;
+			const b = blobs.get(p);
+			if (b) files.put(b, `${id}/${p}`);
+		}
+		tx.objectStore('manifests').put({ id, files: list.map(f => ({ path: f.path, size: f.size })) });
+		await txDone(tx);
+	} finally { idb.close(); }
 };
 
 // the game's stores: the loaded skin (always reachable from the page) and the skin in use
@@ -869,10 +865,12 @@ const gameFiles = async (onlyIni) => {
 	let iniPath = null;
 	for (const [p, zipName] of src.files) {
 		if (!GAME_EXT.test(p)) continue;
-		if (p === 'skin.ini') { iniPath = zipName.slice(src.baseLen); continue; }
+		const outPath = relPath(zipName, src.baseLen);
+		if (!outPath) continue; // (a path that climbs out of the skin folder, or is absolute: never written)
+		if (p === 'skin.ini') { iniPath = outPath; continue; }
 		const kind = fileKind(p, src.iniPaths);
 		if (kind && !kindOn(kind)) continue;
-		list.push({ path: zipName.slice(src.baseLen), lower: p });
+		list.push({ path: outPath, lower: p });
 	}
 	if (list.length + 1 > GAME_MAX_FILES) throw new Error('this skin has too many files for the game');
 	const iniText = iniWithChanges(src.iniText);
@@ -970,9 +968,10 @@ const upscrollInUse = async (on) => {
 		if (files) { ini = files.find(f => gamePath(f.path) === 'skin.ini'); old = ini ? await libBytes(entry.name, ini.path) : null; }
 	} else {
 		const idb = await gameSkinDb();
-		files = (await reqDone(idb.transaction('manifests').objectStore('manifests').get(cur.id)))?.files;
-		if (files) { ini = files.find(f => gamePath(f.path) === 'skin.ini'); old = ini ? await reqDone(idb.transaction('files').objectStore('files').get(`${cur.id}/skin.ini`)) : null; }
-		idb.close();
+		try {
+			files = (await reqDone(idb.transaction('manifests').objectStore('manifests').get(cur.id)))?.files;
+			if (files) { ini = files.find(f => gamePath(f.path) === 'skin.ini'); old = ini ? await reqDone(idb.transaction('files').objectStore('files').get(`${cur.id}/skin.ini`)) : null; }
+		} finally { idb.close(); }
 	}
 	if (!files) { setStatus('That skin is from the game\'s online list; upscroll only changes skins added here or from a file.', C.warn); return; }
 	const text = setManiaKey(old ? await old.text() : null, 'UpsideDown', on ? '1' : '0');
@@ -1009,8 +1008,7 @@ const currentManifest = async (id, quick) => {
 	if (hostLib()) files = ((await libEntry(id)) || { files: [] }).files.map(f => ({ path: f.path, size: f.size }));
 	else {
 		const idb = await gameSkinDb();
-		files = (await reqDone(idb.transaction('manifests').objectStore('manifests').get(id)))?.files || [];
-		idb.close();
+		try { files = (await reqDone(idb.transaction('manifests').objectStore('manifests').get(id)))?.files || []; } finally { idb.close(); }
 	}
 	const ini = quick.list.find(f => gamePath(f.path) === quick.iniKey);
 	return [...files.filter(f => gamePath(f.path) !== quick.iniKey), ini];
@@ -1204,11 +1202,7 @@ const judgeUnmount = () => {
 	else judge.dx = 0;
 };
 
-const CIRCLES_KEY = 'oss-idle-circle-notes-settings'; // shared with the Circle notes add-on
 const UPSCROLL_KEY = 'oss-idle-upscroll';            // shared with the Upscroll add-on
-const saveCircles = () => {
-	try { localStorage.setItem(CIRCLES_KEY, JSON.stringify({ enabled: circles, tailCircles })); } catch {}
-};
 const setUpscroll = (on) => {
 	upscroll = on;
 	try { localStorage.setItem(UPSCROLL_KEY, upscroll ? '1' : '0'); } catch {}
@@ -1276,7 +1270,11 @@ const versus = (() => {
 		const widths = String(m.ColumnWidth || '').split(',').map(Number).filter(n => n > 0);
 		const cw = widths.length ? widths.reduce((a, b) => a + b, 0) / widths.length : 30;
 		const hp = Math.min(480, Math.max(240, Number(m.HitPosition) || 402));
-		return { playfield: { columnWidth: cw * H, hitPosition: (480 - hp) * H, noteHeight: Math.max(8, cw * H * 0.4), receptorHeight: Math.max(10, cw * H * 0.5) } };
+		const game = (gameSkinNow() || {}).data || {}; // (the colours, judgement texts and hitsound the game has for the skin in use)
+		return {
+			playfield: { columnWidth: cw * H, hitPosition: (480 - hp) * H, noteHeight: Math.max(8, cw * H * 0.4), receptorHeight: Math.max(10, cw * H * 0.5) },
+			hitSounds: game.hitSounds, hitObjects: game.hitObjects, judgements: game.judgements,
+		};
 	};
 	const colorA = (c, a) => {
 		if (typeof c !== 'string') return `rgba(255,255,255,${a})`;
@@ -1691,6 +1689,7 @@ const versus = (() => {
 })();
 
 let panel, onKey, els = {};
+let reloadTimer = 0; // the pending automatic restart (kept here so a rebuilt or closed panel can still cancel it)
 
 const el = (tag, css, text) => {
 	const e = document.createElement(tag);
@@ -2072,6 +2071,7 @@ const load = async (open, label) => {
 	await nextFrame(); // let the spinner show before the work starts
 	try {
 		const result = await convert(await open(), label.replace(/\.(osk|zip)$/i, ''));
+		if (!els.details) return; // (the editor was switched off meanwhile)
 		skin = result.skin;
 		receptorPos = null;
 		liveId = null; // a new skin: it goes live as soon as it's converted (see load)
@@ -2080,6 +2080,7 @@ const load = async (open, label) => {
 		setStatus(`Converted ${label}. Using it now…`, C.ok);
 		await els.useSkin?.();
 	} catch (e) {
+		if (!els.details) return;
 		skin = null;
 		renderSkin([]);
 		setStatus(`Couldn't read ${label}: ${e.message || e}`, C.warn);
@@ -2162,6 +2163,7 @@ const pickFolder = async () => {
 		await saveFolder(handle).catch(() => {});
 		const list = await listFolder(handle);
 		saveList(list);
+		if (!els.filter) return;
 		els.filter.value = '';
 		showList(list, `Found ${list.skins.length} skin${list.skins.length === 1 ? '' : 's'}. Pick one to convert. This folder is remembered for next time.`);
 	} catch (e) {
@@ -2184,6 +2186,7 @@ const openDroppedFolder = async (kept, entry) => {
 		if (keepable) await saveFolder(handle).catch(() => {});
 		const list = await listFolder(handle);
 		if (keepable) saveList(list);
+		if (!els.filter) return;
 		els.filter.value = '';
 		showList(list, `Found ${list.skins.length} skin${list.skins.length === 1 ? '' : 's'}. Pick one to convert.${keepable ? ' This folder is remembered for next time.' : ''}`);
 	} catch (e) {
@@ -2242,7 +2245,7 @@ const buildPanel = () => {
 	els.seeBtn = seeBtn;
 	head.append(
 		el('div', lazerLook ? `font:600 18px ${UI_FONT};color:${C.ink}` : `font:700 16px ${UI_FONT};color:${C.ink}`, 'skin editor'),
-		el('span', `font-size:11px;color:${C.muted}`, 'v0.33.0'),
+		el('span', `font-size:11px;color:${C.muted}`, `v${VERSION}`),
 		seeBtn,
 		close,
 	);
@@ -2474,7 +2477,7 @@ const buildPanel = () => {
 				document.createTextNode(playing ? 'Reloading ends the song you\'re playing.' : 'Restarting it now...'),
 			);
 			confirmBox.style.display = 'grid';
-			if (!playing) { clearTimeout(els.reloadTimer); els.reloadTimer = setTimeout(() => location.reload(), 1800); }
+			if (!playing) { clearTimeout(reloadTimer); reloadTimer = setTimeout(() => location.reload(), 1800); }
 		};
 	const confirmNo = el('button', BTN, 'Later');
 	const confirmRow = el('div', 'display:flex;gap:8px;flex-wrap:wrap');
@@ -2506,11 +2509,10 @@ const buildPanel = () => {
 			if (await applySkin()) {
 				const n = await gameLoaded();
 				let found = '';
-				const apis = () => { try { const d = window.ossIdleDesktop; return d ? `desktop[${Object.keys(d).join(',')}] library[${Object.keys(d.library || {}).join(',')}]` : 'no desktop api'; } catch { return '?'; } };
 				try { if (hostLib()) { const e = await libEntry(liveId); found = e ? `, folder "${e.name}" with ${e.files.length} files` : ', folder NOT found'; } } catch (e) { found = `, folder check failed: ${e && e.message}`; }
 				const msg = n ? `Using this skin now (the game loaded ${n} files; skin ${liveId}, saved in ${where()}${found}). Your edits show in game straight away.`
 					: `Saved (skin ${liveId}, in ${where()}${found}), but the game did not load it: it still shows its own skin.`;
-				actionMsg(n ? msg : `${msg} ${apis()}`, n ? C.ok : C.warn);
+				actionMsg(msg, n ? C.ok : C.warn);
 				setStatus(msg, n ? C.ok : C.warn);
 			} else if (needReload) {
 				els.needReload();
@@ -2537,7 +2539,7 @@ const buildPanel = () => {
 	els.useSkin = useSkin; // a skin dropped in or picked is used right away
 	installBtn.addEventListener('click', useSkin);
 	installBtn.style.display = 'none'; // only shows again as "Try again" if using it fails
-	confirmNo.addEventListener('click', () => { clearTimeout(els.reloadTimer); hideConfirm(); });
+	confirmNo.addEventListener('click', () => { clearTimeout(reloadTimer); hideConfirm(); });
 	confirmYes.addEventListener('click', () => location.reload());
 	actions.append(installBtn, el('span', `font-size:12px;color:${C.muted}`, 'A skin you drop in or pick is added to the game\'s skins and used straight away, no reload. After that, edits show in game live.'));
 
@@ -3251,17 +3253,7 @@ const entries = (() => {
 	const addButton = () => {
 		queued = false;
 		optionGroups.ensure();
-		return; // the button is in the editor's own group in Options now
-		const manage = [...document.querySelectorAll('.opt-button')].find(b => !b.classList.contains(BTN_CLASS) && /manage skins/i.test(b.textContent));
-		if (!manage || manage.parentElement.querySelector(`.${BTN_CLASS}`)) return;
-		const browse = [...manage.parentElement.querySelectorAll('.opt-button')].find(b => /browse skins/i.test(b.textContent));
-		const b = document.createElement('button');
-		b.type = 'button';
-		b.className = `opt-button ${BTN_CLASS}`;
-		b.textContent = 'Skin editor';
-		b.title = 'Opens the skin editor over a map that plays itself, to see your changes live (Alt+Shift+S opens it on its own)';
-		b.addEventListener('click', (e) => { e.stopPropagation(); openLive(); });
-		(browse || manage).after(b);
+		// (the button is in the editor's own group in Options now)
 	};
 	const onMutate = () => {
 		if (queued) return;
@@ -3298,6 +3290,7 @@ const rebuildPanel = () => {
 	if (els.urShow) window.removeEventListener('oss-idle-ur-bar', els.urShow);
 	const listShown = els.folder && els.folder.style.display !== 'none';
 	const folderText = els.folderName?.textContent, toolsShown = els.folderTools?.style.display;
+	clearTimeout(reloadTimer);
 	panel?.remove();
 	els = {};
 	buildPanel();
@@ -3376,17 +3369,18 @@ const liveMap = (() => {
 		const option = (re) => [...document.querySelectorAll('.menu__option.visible')].find(o => re.test(o.textContent.trim()));
 		const logo = document.querySelector('.main-logo');
 		if (!logo) return false;
-		if (!option(/^Play$/)) { logo.click(); await sleep(500); }
+		if (!option(/^Play$/)) { logo.click(); await sleep(500); if (!on) return false; }
 		option(/^Play$/)?.click();
 		await sleep(700);
+		if (!on) return false; // (switched off while we were clicking through the menus)
 		option(/^Solo$/)?.click();
-		for (let i = 0; i < 25 && !inSongSelect(); i++) await sleep(200);
+		for (let i = 0; i < 25 && on && !inSongSelect(); i++) await sleep(200);
 		await sleep(400); // its list
-		return inSongSelect();
+		return on && inSongSelect();
 	};
 	const startOnce = async () => {
 		if (playing()) return 'playing';
-		if (!(await toSongSelect())) return 'nowhere';
+		if (!(await toSongSelect()) || !on) return 'nowhere';
 		const play = testPlay(), map = pickMap();
 		if (!play || !map) return 'nomap';
 		lastStart = Date.now();
@@ -3555,6 +3549,7 @@ export const unmount = () => {
 	if (els.urShow) window.removeEventListener('oss-idle-ur-bar', els.urShow);
 	versus.unmount();
 	waitingForFolder = false;
+	clearTimeout(reloadTimer);
 	panel?.remove();
 	panel = undefined;
 	els = {};

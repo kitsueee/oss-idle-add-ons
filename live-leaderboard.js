@@ -1,4 +1,4 @@
-// oss!idle add-on: live leaderboard  (version 0.1.2)
+// oss!idle add-on: live leaderboard  (version 0.1.3)
 //
 // Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
@@ -17,8 +17,11 @@ const FADE_MS = 250;
 
 const defaults = () => ({ show: true, rows: 7, x: 1, y: 50 }); // x: its left edge, y: its middle, in % of the screen
 let settings = defaults();
-try { Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch {}
-if (settings.side === 'right' && settings.x === undefined) settings.x = 80;
+try {
+	const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+	if (saved.side === 'right' && saved.x === undefined) saved.x = 80; // (an old save had a side, not a position)
+	Object.assign(settings, saved);
+} catch {}
 if (!Number.isFinite(settings.x)) settings.x = 1;
 delete settings.side;
 const save = () => { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch {} };
@@ -69,6 +72,12 @@ const fetchGlobal = async (id, country) => {
 	const res = await fetch(url, { credentials: 'include' });
 	if (!res.ok) return [];
 	const rows = await res.json();
+	// the board shows everyone's country: that's how the COUNTRY board learns yours (once you are on a global board)
+	const mine = (Array.isArray(rows) ? rows : []).find(({ player: p }) => p && p.country && p.name === me.name);
+	if (mine && mine.player.country !== me.country) {
+		me = { ...me, country: mine.player.country };
+		try { localStorage.setItem(ME_KEY, JSON.stringify(me)); } catch {}
+	}
 	return (Array.isArray(rows) ? rows : []).map(({ score: s, player: p }) => ({
 		key: `g${s.id}`, name: (p && p.name) || '?', avatar: (p && p.avatarUrl) || '', country: p && p.country,
 		score: Math.round(s.score || 0), accuracy: s.accuracy, combo: s.maxCombo,
