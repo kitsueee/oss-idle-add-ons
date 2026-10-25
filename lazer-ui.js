@@ -1,4 +1,4 @@
-// oss!idle add-on: lazer look  (version 0.9.3)
+// oss!idle add-on: lazer look  (version 0.9.4)
 //
 // Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
@@ -246,10 +246,24 @@ html.lz-has-toolbar .community{top:44px}
 .community-header__filters .cols{flex-direction:row;align-items:center;gap:10px;padding:0;color:var(--lz-dim)}
 .community-header__search{height:34px;min-width:220px;padding:0 16px;border:0 !important;border-radius:999px;background:hsl(333 10% 7%);font-size:14px}
 .community-header__search::placeholder{color:rgba(255,255,255,.45)}
-.community-music__label{font-size:11px;font-weight:600;letter-spacing:.12em;color:var(--lz-pink)}
-.community-music__title{font-size:17px;font-weight:600}
-.community-music__bar{height:4px;border-radius:2px;background:rgba(255,255,255,.15);overflow:hidden}
-.community-music__fill{background:var(--lz-pink)}
+/* the now playing box: a lazer card, with a glowing progress bar and round buttons */
+.community-music{position:relative;box-sizing:border-box;align-items:stretch!important;gap:12px;padding:14px 16px 16px;border-radius:16px;overflow:hidden;
+ background:linear-gradient(135deg,hsl(333 16% 21%),hsl(333 10% 11%));box-shadow:0 8px 24px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.07)}
+.community-music::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--lz-pink),#b48cff)}
+.community-music::after{content:"";position:absolute;right:-40px;top:-40px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(255,102,171,.28),transparent 70%);pointer-events:none}
+.community-music__meta{align-items:flex-start!important;text-align:left;gap:3px;min-width:0}
+.community-music__label{font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--lz-pink)}
+.community-music__label::before{content:"\266A\00a0";letter-spacing:0}
+.community-music__title{width:100%;font-size:16px;font-weight:600;line-height:1.3;text-overflow:ellipsis}
+.community-music__transport{position:relative;z-index:1;justify-content:center;width:100%;gap:10px}
+.community-music__transport button{width:34px;height:34px;padding:0;border:0;border-radius:50%;color:#fff;background:rgba(255,255,255,.09);opacity:1;cursor:pointer;place-items:center;transition:background .14s,transform .14s,box-shadow .14s}
+.community-music__transport button:hover{background:rgba(255,255,255,.2);transform:scale(1.08)}
+.community-music__transport button:nth-child(2){width:44px;height:44px;background:var(--lz-pink);box-shadow:0 0 14px rgba(255,102,171,.55)}
+.community-music__transport button:nth-child(2):hover{background:#ff85bf;box-shadow:0 0 20px rgba(255,102,171,.8)}
+.community-music__transport svg{width:18px;height:18px}
+.community-music__transport button:nth-child(2) svg{width:20px;height:20px}
+.community-music__bar{width:100%!important;box-sizing:border-box;height:6px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden}
+.community-music__fill{border-radius:999px;background:linear-gradient(90deg,var(--lz-pink),#ff9ec9);box-shadow:0 0 10px rgba(255,102,171,.7)}
 /* tabs: lazer's underlined ones */
 .tabs.classic{height:auto;gap:4px;margin:0;padding:0 22px;border-bottom:1px solid rgba(255,255,255,.08);overflow-x:auto}
 .tabs.classic .tab,.tabs.classic .tab.special,.tabs.classic .tab.read{margin:0 !important;padding:10px 14px 8px;border-radius:0;box-shadow:none;background:none;border-bottom:3px solid transparent;color:var(--lz-dim);font-size:14px;font-weight:600;line-height:1.2;text-transform:lowercase}
