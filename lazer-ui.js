@@ -1,4 +1,4 @@
-// oss!idle add-on: lazer look  (version 0.9.1)
+// oss!idle add-on: lazer look  (version 0.9.2)
 //
 // Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
@@ -346,6 +346,12 @@ html.lz-has-toolbar .community{top:44px}
 .ctxmenu>.ctxmenu__options .ctxmenu__option{width:100%;padding:13px 0;font-size:16px;font-weight:600;letter-spacing:.01em;text-shadow:none;box-shadow:none;background:var(--accent);
  clip-path:polygon(14px 0,100% 0,calc(100% - 14px) 100%,0 100%);transition:filter .12s,transform .12s}
 .ctxmenu>.ctxmenu__options .ctxmenu__option:hover{filter:brightness(1.15);transform:scaleX(1.02)}
+.ctxmenu.lz-pop{position:fixed!important;inset:auto!important;left:var(--lz-px,0)!important;top:var(--lz-py,0)!important;width:min(280px,92vw);height:auto!important;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;background:hsl(333 10% 13% / .98);-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:14px;overflow:hidden;box-shadow:0 12px 36px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.07)}
+.ctxmenu.lz-pop>.ctxmenu__header{width:auto;padding:14px 18px 4px;text-align:left;font-size:15px;background:none;border-radius:0;box-shadow:none}
+.ctxmenu.lz-pop>.ctxmenu__header .ctxmenu__title{font-size:15px}
+.ctxmenu.lz-pop>.ctxmenu__header .ctxmenu__sub{margin-top:3px;font-size:12px}
+.ctxmenu.lz-pop>.ctxmenu__options{width:auto;padding:8px 14px 14px;gap:6px;background:none;border-radius:0;box-shadow:none}
+.ctxmenu.lz-pop>.ctxmenu__options .ctxmenu__option{padding:9px 0;font-size:14px}
 .ctxmenu__input{width:min(500px,86vw);padding:10px 16px;border:0;border-radius:var(--lz-r);background:hsl(333 10% 8%);font-size:16px}
 
 /* ---------- options: lazer's settings overlay ---------- */
@@ -1083,7 +1089,28 @@ const lzScan = () => {
 		}
 	}
 };
+// A menu from a right-click opens next to the mouse as a small card (the game's other pop-ups stay centered dialogs)
+let rightAt = { x: 0, y: 0, t: 0 };
+const closePop = () => document.querySelector('.ctxmenu.lz-pop')?.click(); // (the game closes a menu when its backdrop is clicked: here the menu is the backdrop)
+const onRight = (e) => { if (!e.target.closest?.('.ctxmenu.lz-pop')) closePop(); rightAt = { x: e.clientX, y: e.clientY, t: Date.now() }; };
+const onClickOutside = (e) => {
+	const pop = document.querySelector('.ctxmenu.lz-pop');
+	if (pop && !pop.contains(e.target)) { e.preventDefault(); e.stopPropagation(); pop.click(); } // (this click only closes the menu)
+};
+const popScan = () => {
+	for (const m of document.querySelectorAll('.ctxmenu:not([data-lz-pop])')) {
+		m.dataset.lzPop = '1';
+		if (Date.now() - rightAt.t > 700) continue; // not from a right-click
+		m.classList.add('lz-pop');
+		m.style.setProperty('--lz-px', `${rightAt.x + 4}px`);
+		m.style.setProperty('--lz-py', `${rightAt.y + 4}px`);
+		const r = m.getBoundingClientRect(); // (kept on the screen)
+		m.style.setProperty('--lz-px', `${Math.max(8, Math.min(rightAt.x + 4, innerWidth - r.width - 8))}px`);
+		m.style.setProperty('--lz-py', `${Math.max(8, Math.min(rightAt.y + 4, innerHeight - r.height - 8))}px`);
+	}
+};
 const scan = () => {
+	popScan();
 	lzScan();
 	const screen = document.querySelector('.resultscreen');
 	if (screen) addRing(screen);
@@ -1121,6 +1148,8 @@ export const mount = () => {
 	observer = new MutationObserver(scan);
 	observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 	document.addEventListener('scroll', onScroll, true);
+	document.addEventListener('contextmenu', onRight, true);
+	document.addEventListener('click', onClickOutside, true);
 	lzLoad();
 	document.addEventListener('submit', lzOnSubmit, true);
 	carouselReturn.mount();
@@ -1139,6 +1168,10 @@ export const unmount = () => {
 	headObserver?.disconnect();
 	headObserver = null;
 	document.removeEventListener('scroll', onScroll, true);
+	document.removeEventListener('contextmenu', onRight, true);
+	document.removeEventListener('click', onClickOutside, true);
+	document.querySelectorAll('.ctxmenu.lz-pop').forEach(m => { m.classList.remove('lz-pop'); m.style.removeProperty('--lz-px'); m.style.removeProperty('--lz-py'); });
+	document.querySelectorAll('.ctxmenu[data-lz-pop]').forEach(m => delete m.dataset.lzPop);
 	document.removeEventListener('submit', lzOnSubmit, true);
 	document.querySelectorAll('.lz-only').forEach(b => b.remove());
 	document.querySelectorAll('.lz-nolazer').forEach(c => c.classList.remove('lz-nolazer'));
