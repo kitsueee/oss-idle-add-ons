@@ -1,4 +1,4 @@
-// oss!idle add-on: lazer look  (version 0.9.6)
+// oss!idle add-on: lazer look  (version 0.9.7)
 //
 // Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
@@ -254,6 +254,10 @@ html.lz-has-toolbar .community{top:44px}
 .dock{--dock-line:rgba(255,255,255,.08);border:0;border-radius:18px;background:linear-gradient(160deg,hsl(333 14% 17% / .97),hsl(333 10% 9% / .98));
  box-shadow:0 14px 40px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.07);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 .dock--left{border-radius:0 18px 18px 0}
+/* the queue panel runs from the toolbar down to the bottom bar (the game stops it short), and the queue's own top strip (a dark fade with a blue line under it) is gone */
+html.lz-has-toolbar .dock--left{top:44px}
+.dock--left.dock--left-scene{bottom:64px!important}
+.game__topbar.game__topbar--compact{background:transparent!important;border-bottom:0!important}
 .dock--panel::before{content:"";position:absolute;left:22px;right:22px;top:0;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--lz-pink),transparent)}
 .dock__grade{border:0;border-radius:14px;background:rgba(0,0,0,.35);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
 .dock__map span,.dock__upnext-title span,.dock__entry-name span,.dock__mods,.dock__repeat,.dock__next-icon,.dock__source{color:var(--lz-pink)}

@@ -21,6 +21,9 @@ How this was put together: the notes come from the add-ons' own version history 
 - Pictures from chat are loaded without a referrer. Reaction chips follow the "Show pictures and GIFs" setting.
 - Your own name is only picked up from your echoed message when it carries your mark. The 🔒 tab flips to 🔓 right after the password. The browser database connections are closed after use.
 
+**lazer look 0.9.7**
+- The queue panel on the left now runs from the toolbar down to the bottom bar. The dark fade and blue line across the top of song select while the queue is open are gone.
+
 **lazer look 0.9.6**
 - Opening the Add-ons page (from the toolbar or the options) closes the chat and the online users panel.
 

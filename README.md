@@ -5,7 +5,7 @@ Add-ons for [oss!idle](https://oss.idle.rhythmgamers.net). Each `.js` file is on
 | File | Add-on | Version |
 | --- | --- | --- |
 | `chat-emojis.js` | chat emojis: emojis, GIFs, reactions, replies, add-on user stars (🔒 tab for your own star) | 0.9.5 |
-| `lazer-ui.js` | lazer look: the lazer skin for the game, LAZER tags on banners, "Lazer only" user filter | 0.9.6 |
+| `lazer-ui.js` | lazer look: the lazer skin for the game, LAZER tags on banners, "Lazer only" user filter | 0.9.7 |
 | `skin-editor.js` | skin editor: edit and use skins live (sideways combo/judgement moves, receptors, upscroll) | 0.33.1 |
 | `live-leaderboard.js` | live leaderboard | 0.1.3 |
 | `medal-tracker.js` | medal tracker | 0.3.2 |
