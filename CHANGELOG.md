@@ -8,6 +8,9 @@ How this was put together: the notes come from the add-ons' own version history 
 
 ## Code review fixes (25 Oct)
 
+**chat emojis 0.9.5**
+- Private messages work again: the game doesn't mark the sender's name in DMs, so the add-on couldn't tell who wrote a line (no ✦, no reply or reaction buttons, reactions not shown). It now finds the name anyway.
+
 **chat emojis 0.9.4**
 - The ✦ in chat now sits on the right-hand side of the name (on player cards it stays in the top right corner).
 - Star colors are picked with a row of swatches and a hex box inside the picker, so nothing opens off the screen.

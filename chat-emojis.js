@@ -1,4 +1,4 @@
-// oss!idle add-on: chat emojis  (version 0.9.4)
+// oss!idle add-on: chat emojis  (version 0.9.5)
 //
 // Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
@@ -315,10 +315,12 @@ const expandEmoji = (text, emo) => text.replace(/:([a-z0-9_+-]{1,32}):/gi, (all,
 	return EMOJI.get(name) ?? all;
 });
 
-const chatName = (line) => (line.querySelector('.chat__name')?.textContent || '').replace(/[:\s]+$/, '').trim();
+// the sender's name: the game marks it (.chat__name) in the main chat, but not in private messages, where it's the last span in the line's start
+const nameEl = (line) => line.querySelector('.chat__name') || [...line.querySelectorAll(':scope > .chat__from > span:not([class])')].pop() || null;
+const chatName = (line) => (nameEl(line)?.textContent || '').replace(/[:\s]+$/, '').trim();
 const chatTime = (line) => (/\d{1,2}:\d{2}(?::\d{2})?/.exec(line.querySelector('.chat__from')?.textContent || '') || [''])[0];
 // every message from this add-on starts with these three invisible characters
-const VERSION = '0.9.4';
+const VERSION = '0.9.5';
 const buildOf = (v) => { const [a = 0, b = 0, c = 0] = v.split('.').map(Number); return a * 10000 + b * 100 + c; };
 const BUILD = buildOf(VERSION);
 const MAX_BUILD = BUILD + 300; // (a few minor versions ahead is believable)
@@ -691,7 +693,7 @@ const chatEmoji = (() => {
 	/** The little counters under a message. */
 	const renderReactions = () => {
 		for (const line of document.querySelectorAll('.chat__line[data-ce-line]:not(.ce-react-line)')) {
-			const nm = line.querySelector('.chat__name');
+			const nm = nameEl(line);
 			const info = nm && emo.badge ? badgeInfo(chatName(line)) : null;
 			const had = line.querySelector('.ce-badge');
 			if (info) {
