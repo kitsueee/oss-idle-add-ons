@@ -184,29 +184,6 @@ How this was put together: the notes come from the add-ons' own version history 
 
 ---
 
-## Circle notes
-
-**0.4.2** (23 Oct) and **0.4.0** (23 Oct)
-- Draws tap notes, hold heads and receptors as circles, with the hold's body as a bar.
-
-**0.3.1** (23 Oct)
-- First version kept in the repo.
-
-## Skin images
-
-**0.2.0** and **0.1.0** (23 Oct)
-- Draws the note, long note and key images of skins brought in with the skin importer.
-
-## Upscroll
-- Flips the playfield for upscroll. (An older version is not kept.)
-
-## add-on tiles
-
-**0.1.4** (25 Oct): add-on details page shows the picture at the tile's size, with the text under it.
-**0.1.2** (24 Oct): a search box on the Manage tab narrows your add-ons and the installed ones by name, author, description or tag.
-**0.1.1** (24 Oct): published / unpublished badges in a row under each add-on's name.
-**0.1.0** (24 Oct): first version.
-
 ## live leaderboard
 
 **0.1.2** (24 Oct) and **0.1.1** (24 Oct): the live leaderboard. 0.1.1 was the first version kept.
@@ -217,14 +194,5 @@ How this was put together: the notes come from the add-ons' own version history 
 **0.3.0** (24 Oct): for medals won on a map, the easiest ranked maps to go for (click one to search for it); takes osu!lazer's look when the lazer look add-on is on.
 **0.2.0** (24 Oct): first version kept.
 
-## add-on sandbox 0.1.0 (25 Oct)
-First version.
-
-## pink stars hotfix 0.1.0 (25 Oct)
-Makes everyone's ✦ pink again (made before chat emojis 0.7). No longer needed.
-
-## reset star memory 0.1.0 (25 Oct)
-Clears the chat add-on's remembered users once, then reloads.
-
-## Smaller add-ons (22–23 Oct)
-First versions of `frame-doctor`, `maps-at-once`, `pp-counter` (live pp counter), `smooth-notes`, `system-cursor` and `ur-bar` (UR bar position).
+## live pp counter, system cursor
+First versions, 22–23 Oct.
