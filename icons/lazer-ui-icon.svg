@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2a1d3d"/><stop offset="1" stop-color="#120d1c"/>
+    </linearGradient>
+    <linearGradient id="pink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff8cc4"/><stop offset="1" stop-color="#ff4d9d"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#66ccff" stop-opacity="0"/><stop offset=".3" stop-color="#66ccff"/><stop offset=".75" stop-color="#b48cff"/><stop offset="1" stop-color="#b48cff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#ff66ab" stop-opacity=".55"/><stop offset="1" stop-color="#ff66ab" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="9"/></filter>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <circle cx="256" cy="220" r="230" fill="url(#glow)"/>
+  <g transform="translate(256 200) scale(.62) translate(-256 -256)">
+  <!-- a hit circle with its approach ring -->
+  <circle cx="256" cy="256" r="176" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="10"/>
+  <circle cx="256" cy="256" r="126" fill="url(#pink)" stroke="#fff" stroke-width="14"/>
+  <circle cx="256" cy="256" r="86" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="8"/>
+  <!-- the laser, crossing over the circle -->
+  <g transform="rotate(-24 256 256)">
+    <rect x="-30" y="226" width="580" height="60" rx="30" fill="url(#beam)" opacity=".6" filter="url(#blur)"/>
+    <rect x="-30" y="242" width="580" height="28" rx="14" fill="url(#beam)"/>
+    <rect x="-30" y="251" width="580" height="10" rx="5" fill="#fff" opacity=".95"/>
+  </g>
+  </g>
+  <text x="256" y="402" text-anchor="middle" font-family="'Exo 2','Segoe UI',system-ui,sans-serif" font-weight="800" font-size="96" fill="#fff" letter-spacing="2">lazer</text>
+  <text x="256" y="458" text-anchor="middle" font-family="'Exo 2','Segoe UI',system-ui,sans-serif" font-weight="700" font-size="48" fill="url(#pink)" letter-spacing="6">id!le</text>
+</svg>
