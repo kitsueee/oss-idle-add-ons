@@ -1,4 +1,4 @@
-// oss!idle add-on: chat emojis  (version 0.9.3)
+// oss!idle add-on: chat emojis  (version 0.9.4)
 //
 // Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
@@ -81,7 +81,7 @@ const CSS = String.raw`
 .ce-emo-pick__key a{color:var(--ce-pink)}
 .ce-emo-pick__powered{align-self:flex-end;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ce-dim)}
 .ce-emo-pick__keylink{align-self:flex-start;padding:0;border:0;background:none;color:var(--ce-dim);font:inherit;font-size:11px;cursor:pointer;text-decoration:underline}
-.ce-badge{margin:0 4px 0 2px;color:var(--ce-star,var(--ce-pink));font-size:.85em;cursor:default}
+.ce-badge{margin:0 2px 0 4px;color:var(--ce-star,var(--ce-pink));font-size:.85em;cursor:default}
 .ce-badge.is-old{color:var(--ce-star-old,#4ba3ff)}
 .ce-badge--rainbow{background:linear-gradient(90deg,#ff5a5a,#ffb84d,#f3ee5a,#5ee07a,#4dc9ff,#8a7bff,#ff6ad5,#ff5a5a);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:ce-rainbow 4s linear infinite}
 .ce-badge--grad{background:linear-gradient(90deg,var(--g1),var(--g2),var(--g1));background-size:200% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:ce-rainbow 4s linear infinite}
@@ -156,6 +156,13 @@ const CSS = String.raw`
 .ce-emo-pick__foot{background:rgba(0,0,0,.28)}
 .ce-emo-pick__add input,.ce-set select,.ce-set input[type=text],.ce-set input[type=password]{border-radius:999px;background:rgba(0,0,0,.38);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);padding:0 12px}
 .ce-set input[type=password]{flex:1;min-width:0;height:28px;border:0;color:#fff;font:inherit;outline:none}
+.ce-set--col{display:block}
+.ce-sw__head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ce-sw__now{width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+.ce-sw{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ce-sw__c{width:22px;height:22px;padding:0;border:0;border-radius:50%;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
+.ce-sw__c.is-on{box-shadow:0 0 0 2px #fff}
+.ce-set .ce-sw input{flex:none;width:92px;height:26px;border:0;border-radius:999px;background:rgba(0,0,0,.38);color:#fff;font:12px ui-monospace,monospace;padding:0 10px;outline:none}
 .ce-set input[type=color]{margin-left:auto;width:44px;height:26px;padding:0;border:0;border-radius:999px;background:none;cursor:pointer}
 .ce-emo-pick__add button,.ce-set button,.ce-emo-pick__more,.ce-box__bar a,.ce-box__bar button{border-radius:999px;background:linear-gradient(135deg,#ff66ab,#ff8ec4);color:#fff;font-weight:600;box-shadow:0 2px 10px rgba(255,102,171,.3)}
 .ce-set button{background:rgba(255,255,255,.1);box-shadow:none;font-weight:500}
@@ -311,10 +318,24 @@ const expandEmoji = (text, emo) => text.replace(/:([a-z0-9_+-]{1,32}):/gi, (all,
 const chatName = (line) => (line.querySelector('.chat__name')?.textContent || '').replace(/[:\s]+$/, '').trim();
 const chatTime = (line) => (/\d{1,2}:\d{2}(?::\d{2})?/.exec(line.querySelector('.chat__from')?.textContent || '') || [''])[0];
 // every message from this add-on starts with these three invisible characters
-const VERSION = '0.9.3';
+const VERSION = '0.9.4';
 const buildOf = (v) => { const [a = 0, b = 0, c = 0] = v.split('.').map(Number); return a * 10000 + b * 100 + c; };
 const BUILD = buildOf(VERSION);
 const MAX_BUILD = BUILD + 300; // (a few minor versions ahead is believable)
+// the password is only kept as a scrambled value (not secret: it keeps the code out of plain sight)
+const hashOf = (str) => {
+	let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+	for (let i = 0; i < str.length; i++) {
+		const ch = str.charCodeAt(i);
+		h1 = Math.imul(h1 ^ ch, 2654435761);
+		h2 = Math.imul(h2 ^ ch, 1597334677);
+	}
+	h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+	h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+	return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+};
+const PASS_HASH = 'xhecghjjhy';
+const STAR_SWATCHES = ['#ff66ab', '#ff4d4d', '#ff9f43', '#ffd93d', '#5ee07a', '#3ddcc8', '#4ba3ff', '#8a7bff', '#c77dff', '#ffffff', '#9aa0a6', '#000000'];
 const STAR_SINCE = '0.9.2'; // the first version that sends and shows star colors
 const showBuild = (n) => (n > 0 ? `${Math.floor(n / 10000)}.${Math.floor(n / 100) % 100}.${n % 100}` : 'an older version');
 // after the three characters come 24 more (zero / one), which are this add-on's version number: that's how others tell who is out of date
@@ -652,7 +673,7 @@ const chatEmoji = (() => {
 		const t = info.old ? `Out of date: ${showBuild(info.build)} (the newest seen is ${showBuild(latestBuild())})` : `Uses the chat emojis add-on (${showBuild(info.build)})`;
 		if (b.title !== t) b.title = t;
 	};
-	/** ✦ on the left edge of player cards (the rankings, the player list) for people known to use the add-on. */
+	/** ✦ in the top right corner of player cards (the rankings, the player list) for people known to use the add-on. */
 	const cardBadges = () => {
 		for (const nm of document.querySelectorAll('.player-card__name')) {
 			const card = nm.closest('.player-card');
@@ -678,7 +699,7 @@ const chatEmoji = (() => {
 				else {
 					const b = el('span', 'ce-badge', '✦');
 					setBadge(b, info);
-					nm.before(b);
+					nm.after(b);
 				}
 			} else had?.remove();
 			const m = line._ceRx?.size ? line._ceRx : null;
@@ -1158,7 +1179,7 @@ const chatEmoji = (() => {
 			const go = el('button', '', 'Enter');
 			go.type = 'button';
 			const tryCode = () => {
-				if (code.value.trim().toLowerCase() === 'skibidi') { emo.star = true; saveEmo(emo); redo(); const tb = document.querySelector('.ce-emo-pick__tab[data-set="lock"]'); if (tb) tb.textContent = '🔓'; fill(); } else { say.textContent = 'Wrong password.'; code.value = ''; }
+				if (hashOf(`oss-idle:${code.value.trim().toLowerCase()}`) === PASS_HASH) { emo.star = true; saveEmo(emo); redo(); const tb = document.querySelector('.ce-emo-pick__tab[data-set="lock"]'); if (tb) tb.textContent = '🔓'; fill(); } else { say.textContent = 'Wrong password.'; code.value = ''; }
 			};
 			go.addEventListener('click', tryCode);
 			code.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); tryCode(); } });
@@ -1177,12 +1198,33 @@ const chatEmoji = (() => {
 			return l;
 		};
 		const pick = (label, key) => {
-			const l = el('label', 'ce-set', label);
-			const c = el('input');
-			c.type = 'color';
-			c.value = emo[key];
-			c.addEventListener('input', () => { emo[key] = c.value; done(redo)(); });
-			l.append(c);
+			// swatches and a hex box right in the picker (the browser's own color window can open off the screen)
+			const l = el('div', 'ce-set ce-set--col');
+			const head = el('div', 'ce-sw__head', label);
+			const now = el('span', 'ce-sw__now');
+			head.append(now);
+			const hex = el('input');
+			hex.type = 'text';
+			hex.maxLength = 7;
+			hex.placeholder = '#ff66ab';
+			hex.spellcheck = false;
+			const row = el('div', 'ce-sw');
+			const show = () => { now.style.background = emo[key]; hex.value = emo[key]; row.querySelectorAll('button').forEach(b => b.classList.toggle('is-on', b.dataset.c === emo[key])); };
+			const set = (v) => { emo[key] = v; show(); done(redo)(); };
+			for (const c of STAR_SWATCHES) {
+				const b = el('button', 'ce-sw__c');
+				b.type = 'button';
+				b.dataset.c = c;
+				b.title = c;
+				b.style.background = c;
+				b.addEventListener('click', () => set(c));
+				row.append(b);
+			}
+			hex.addEventListener('keydown', (e) => e.stopPropagation());
+			hex.addEventListener('input', () => { const v = hex.value.trim().toLowerCase(); if (/^#[0-9a-f]{6}$/.test(v)) { emo[key] = v; now.style.background = v; row.querySelectorAll('button').forEach(b => b.classList.toggle('is-on', b.dataset.c === v)); done(redo)(); } });
+			row.append(hex);
+			l.append(head, row);
+			show();
 			return l;
 		};
 		grid.append(el('div', 'ce-set__h', 'Your mark'), choose('Look', 'starMode', [['', 'The usual'], ['solid', 'One color'], ['gradient', 'Two colors, fading (animated)']], () => { redo(); fill(); }));

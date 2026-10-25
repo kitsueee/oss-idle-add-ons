@@ -8,6 +8,11 @@ How this was put together: the notes come from the add-ons' own version history 
 
 ## Code review fixes (25 Oct)
 
+**chat emojis 0.9.4**
+- The ✦ in chat now sits on the right-hand side of the name (on player cards it stays in the top right corner).
+- Star colors are picked with a row of swatches and a hex box inside the picker, so nothing opens off the screen.
+- The password is stored scrambled, not as plain text.
+
 **chat emojis 0.9.3**
 - A made-up version number in a chat message can no longer turn everyone's stars blue.
 - Pictures from chat are loaded without a referrer. Reaction chips follow the "Show pictures and GIFs" setting.
