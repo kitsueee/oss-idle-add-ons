@@ -28,3 +28,5 @@ Add-ons for [oss!idle](https://oss.idle.rhythmgamers.net). Each `.js` file is on
 Notes
 - The skin editor 0.33.0 works with the game's newer skin folders (desktop app). A brand-new skin makes the game restart itself once, because the game only lists its skin folders when it starts.
 - Add-ons can't use `eval`, `Function` or `import()`; check one with `npx tsx check.ts ../<file>.js` from the rule checker.
+
+See [CHANGELOG.md](CHANGELOG.md) for the patch notes of every add-on.
