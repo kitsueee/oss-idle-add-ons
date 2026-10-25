@@ -1,4 +1,4 @@
-// oss!idle add-on: lazer look  (version 0.9.4)
+// oss!idle add-on: lazer look  (version 0.9.5)
 //
 // Copyright (c) 2026 kitsue. Released under the MIT License: free to use, copy, change
 // and share, as long as this notice stays in; it comes with no warranty.
@@ -246,24 +246,44 @@ html.lz-has-toolbar .community{top:44px}
 .community-header__filters .cols{flex-direction:row;align-items:center;gap:10px;padding:0;color:var(--lz-dim)}
 .community-header__search{height:34px;min-width:220px;padding:0 16px;border:0 !important;border-radius:999px;background:hsl(333 10% 7%);font-size:14px}
 .community-header__search::placeholder{color:rgba(255,255,255,.45)}
-/* the now playing box: a lazer card, with a glowing progress bar and round buttons */
-.community-music{position:relative;box-sizing:border-box;align-items:stretch!important;gap:12px;padding:14px 16px 16px;border-radius:16px;overflow:hidden;
- background:linear-gradient(135deg,hsl(333 16% 21%),hsl(333 10% 11%));box-shadow:0 8px 24px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.07)}
-.community-music::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--lz-pink),#b48cff)}
-.community-music::after{content:"";position:absolute;right:-40px;top:-40px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(255,102,171,.28),transparent 70%);pointer-events:none}
-.community-music__meta{align-items:flex-start!important;text-align:left;gap:3px;min-width:0}
-.community-music__label{font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--lz-pink)}
-.community-music__label::before{content:"\266A\00a0";letter-spacing:0}
-.community-music__title{width:100%;font-size:16px;font-weight:600;line-height:1.3;text-overflow:ellipsis}
-.community-music__transport{position:relative;z-index:1;justify-content:center;width:100%;gap:10px}
-.community-music__transport button{width:34px;height:34px;padding:0;border:0;border-radius:50%;color:#fff;background:rgba(255,255,255,.09);opacity:1;cursor:pointer;place-items:center;transition:background .14s,transform .14s,box-shadow .14s}
-.community-music__transport button:hover{background:rgba(255,255,255,.2);transform:scale(1.08)}
-.community-music__transport button:nth-child(2){width:44px;height:44px;background:var(--lz-pink);box-shadow:0 0 14px rgba(255,102,171,.55)}
-.community-music__transport button:nth-child(2):hover{background:#ff85bf;box-shadow:0 0 20px rgba(255,102,171,.8)}
-.community-music__transport svg{width:18px;height:18px}
-.community-music__transport button:nth-child(2) svg{width:20px;height:20px}
-.community-music__bar{width:100%!important;box-sizing:border-box;height:6px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden}
-.community-music__fill{border-radius:999px;background:linear-gradient(90deg,var(--lz-pink),#ff9ec9);box-shadow:0 0 10px rgba(255,102,171,.7)}
+.community-music__label{font-size:11px;font-weight:600;letter-spacing:.12em;color:var(--lz-pink)}
+.community-music__title{font-size:17px;font-weight:600}
+.community-music__bar{height:4px;border-radius:2px;background:rgba(255,255,255,.15);overflow:hidden}
+.community-music__fill{background:var(--lz-pink)}
+/* the queue / now playing dock (bottom right in song select, and the queue panel on the left): lazer's glass card */
+.dock{--dock-line:rgba(255,255,255,.08);border:0;border-radius:18px;background:linear-gradient(160deg,hsl(333 14% 17% / .97),hsl(333 10% 9% / .98));
+ box-shadow:0 14px 40px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.07);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.dock--left{border-radius:0 18px 18px 0}
+.dock--panel::before{content:"";position:absolute;left:22px;right:22px;top:0;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--lz-pink),transparent)}
+.dock__grade{border:0;border-radius:14px;background:rgba(0,0,0,.35);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.dock__map span,.dock__upnext-title span,.dock__entry-name span,.dock__mods,.dock__repeat,.dock__next-icon,.dock__source{color:var(--lz-pink)}
+.dock__map{font-weight:600}
+.dock__progress{height:5px;border-radius:999px;background:rgba(255,255,255,.14)}
+.dock__progress b{height:5px;border-radius:999px;background:linear-gradient(90deg,var(--lz-pink),#ff9ec9);box-shadow:0 0 10px rgba(255,102,171,.7)}
+.dock__upnext{padding:9px 12px 10px;border-radius:12px;background:rgba(0,0,0,.26)}
+.dock__countbar{border-radius:999px}
+.dock__countbar b{background:linear-gradient(90deg,var(--lz-pink),#ff9ec9)}
+.dock__icon,.dock__btn{border:0;border-radius:12px;background:rgba(255,255,255,.09);transition:background .14s,transform .14s,box-shadow .14s}
+.dock__icon:hover:not(:disabled),.dock__btn:hover:not(:disabled){background:rgba(255,255,255,.2);transform:translateY(-1px)}
+.dock__icon.is-on{background:rgba(255,102,171,.32);box-shadow:inset 0 0 0 1.5px var(--lz-pink)}
+.dock__btn--upgrades{background:linear-gradient(135deg,#ff66ab,#ff8ec4);color:#fff;box-shadow:0 2px 12px rgba(255,102,171,.4)}
+.dock__btn--upgrades:hover:not(:disabled){background:linear-gradient(135deg,#ff7ab8,#ff9ccb);filter:brightness(1.05)}
+.dock__refresh{border-radius:50%;border:0;background:rgba(255,102,171,.25)}
+.dock__queue{border-top:1px solid rgba(255,255,255,.07)}
+.dock__queue-head{color:var(--lz-pink);font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+.dock__count{color:#fff;letter-spacing:0}
+.dock__entry{min-height:50px;margin:3px 0;border-left:0;border-radius:12px}
+.dock__entry + .dock__entry{border-top:0}
+.dock__entry:hover{background:rgba(255,255,255,.07)}
+.dock__entry.is-next{border-left:0;background:rgba(255,102,171,.16);box-shadow:inset 3px 0 var(--lz-pink)}
+.dock__entry.is-dragging{background:rgba(255,255,255,.12);box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.dock__num{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.09);color:#fff;font-size:12px;font-weight:600;text-align:center}
+.dock__entry.is-next .dock__num{background:var(--lz-pink);box-shadow:0 0 10px rgba(255,102,171,.55)}
+.dock__entry-actions{background:linear-gradient(90deg,transparent,hsl(333 10% 11%) 1.5rem)}
+.dock__entry-actions button{border:0;border-radius:10px;background:hsl(333 8% 20%)}
+.dock__entry-actions button:hover:not(:disabled){background:hsl(333 8% 30%)}
+.dock__when.is-counting{border-radius:999px;background:var(--lz-pink)}
+.dock__when.is-paused{border-radius:999px}
 /* tabs: lazer's underlined ones */
 .tabs.classic{height:auto;gap:4px;margin:0;padding:0 22px;border-bottom:1px solid rgba(255,255,255,.08);overflow-x:auto}
 .tabs.classic .tab,.tabs.classic .tab.special,.tabs.classic .tab.read{margin:0 !important;padding:10px 14px 8px;border-radius:0;box-shadow:none;background:none;border-bottom:3px solid transparent;color:var(--lz-dim);font-size:14px;font-weight:600;line-height:1.2;text-transform:lowercase}
